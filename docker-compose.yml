@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+    rethinkdb:
+        image: ${RETHINKDB_RELEASE}
+        container_name: ${RETHINKDB}
+        restart: always
+        volumes:
+            - vol-rethinkdb:/data
+        ports:
+            - ${RETHINKDB_HOST}:${RETHINKDB_PORT01}:28015
+            - ${RETHINKDB_HOST}:${RETHINKDB_PORT02}:29015
+            - ${RETHINKDB_HOST}:${RETHINKDB_PORT03}:8080
+        networks:
+            - rethinkdb-net
+
+volumes:
+    vol-rethinkdb:
+        
+      
+networks:
+    rethinkdb-net:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: ${RETHINKDB_NET}
