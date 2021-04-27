@@ -166,7 +166,12 @@ class UseRethinkDB(object):
 
 class WorkRethinkDB(object):
     """Класс обрабатывающий подключение к базе данных и закрытие соединения с базой. 
-       При этом методы класса повторяют некоторые основные методы API RethinkDB 
+       При этом методы класса повторяют некоторые основные методы API RethinkDB
+
+from rethinkdbcm import WorkRethinkDB
+db = WorkRethinkDB()
+db.db_list()
+
     """
     def __init__(self, host:str = '127.0.0.1', port:int = 28015) -> None:
         self.db = UseRethinkDB
