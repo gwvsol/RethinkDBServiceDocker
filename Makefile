@@ -1,9 +1,8 @@
 .PHONY: help build start stop log remove
 
 #==========================================
-
 VENV_NAME?=venv
-ENV=. .env
+ENV=.env
 VENV_ACTIVATE=. ${VENV_NAME}/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
 PIP=${VENV_NAME}/bin/pip3
@@ -11,6 +10,7 @@ PWD=$(shell pwd)
 DOCKER=$(shell which docker)
 COMPOSE=$(shell which docker-compose)
 COMPOSE_FILE=docker-compose.yml
+include ${ENV}
 #==========================================
 
 .DEFAULT: help
@@ -25,8 +25,7 @@ help:
 # Установка зависимостей для работы приложений
 install:
 	[ -d $(VENV_NAME) ] || python3 -m $(VENV_NAME) $(VENV_NAME)
-	${VENV_NAME}/bin/pip3 install pip -U
-	${VENV_NAME}/bin/pip3 install wheel
+	${PIP} install pip wheel -U
 
 # Активация виртуального окружения для работы приложений
 venv: ${VENV_NAME}/bin/activate
