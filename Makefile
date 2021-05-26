@@ -12,6 +12,7 @@ COMPOSE=$(shell which docker-compose)
 COMPOSE_FILE=docker-compose.yml
 DEPENDENCES=requirements.txt
 RETHINKDBSRV=rethinkdbsrv.py
+RETHINKDBASYNC=rethinkdbasync.py
 include ${ENV}
 #==========================================
 
