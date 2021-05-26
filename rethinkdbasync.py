@@ -13,8 +13,8 @@ class RethinDBWork(object):
         self.format = '%(asctime)s.%(msecs)d|\
 %(levelname)s|%(module)s.%(funcName)s:%(lineno)d %(message)s'
         self.log.basicConfig(level=logging.INFO,
-                            format=self.format,
-                            datefmt='%Y-%m-%d %H:%M:%S')
+                             format=self.format,
+                             datefmt='%Y-%m-%d %H:%M:%S')
         self.host = env.get('RETHINKDB_HOST')
         self.port = env.get('RETHINKDB_PORT01')
         self.dbname = env.get('RETHINKDB_DBNAME')
@@ -53,11 +53,12 @@ class RethinDBWork(object):
         await self.connect()
         tables = await self.db.table(self.table).filter(
             (self.db.row[self.row_item][self.row_carid] == key) |
-            (self.db.row[self.row_item][self.row_objectid] == key)).run(self.conn)
+            (self.db.row[self.row_item][self.row_objectid] == key)
+            ).run(self.conn)
         table = await self.workCursor(cursor=tables)
         # await self.close()
         self.log.info(f'DATA => {table[-1]}')
-        if isinstance(data, list):
+        if isinstance(table, list):
             return table[-1]
         else:
             return table
@@ -85,8 +86,6 @@ class RethinDBWork(object):
 
 rt = RethinDBWork()
 
-try:
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(rt.getKeyData())
-except:
-    loop.close()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(rt.getKeyData())
+loop.close()
