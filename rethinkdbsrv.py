@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import time
 from rethinkdb import RethinkDB
 from rethinkdb.errors import ReqlOpFailedError
 from rethinkdb.errors import ReqlNonExistenceError
@@ -17,6 +18,8 @@ class UseRethinkDB(object):
         self._dbname = env.get('RETHINKDB_DBNAME')
         self._tablename = env.get('RETHINKDB_TABLE')
         self._row_item = 'data'
+        self._during = 900
+        self._row_time = 'time'
         self._row_carid = 'CarId'
         self._row_objectid = 'ObjectID'
         self.log = logging
@@ -36,7 +39,7 @@ class UseRethinkDB(object):
             self.log.error(err.args)
         return self
 
-    def table(self) -> list:
+    def getAllData(self) -> list:
         """Получение всех записей из таблицы базы данных"""
         try:
             return list(self.db.db(self._dbname).table(self._tablename).run())
@@ -45,7 +48,7 @@ class UseRethinkDB(object):
             self.log.error(err.args)
             return list()
 
-    def filter(self, key: (int, str)) -> dict:
+    def getKeyData(self, key: (int, str)) -> dict:
         """Получение записей из таблицы базы данных
             по ключам CarId и ObjectID"""
         try:
@@ -56,6 +59,27 @@ class UseRethinkDB(object):
                 ReqlDriverError, IndexError) as err:
             self.log.error(err.args)
             return list()
+
+    def countActualData(self) -> int:
+        """Получение количества актуальных записей в базе данных"""
+        actual = 0
+        try:
+            utc_now = time.time()
+            ny, nm, nd, nh, nmi, ns, *_ = time.gmtime(utc_now)
+            y, m, d, h, mi, s, *_ = time.gmtime(utc_now - self._during)
+            actual = self.db.db(self._dbname).table(
+                   self._tablename).filter((
+                         self.db.row[self._row_time].during(
+                                    self.db.time(y, m, d, h, mi, s, 'Z'),
+                                    self.db.time(ny, nm, nd, nh, nmi, ns, 'Z')
+                                    )
+                        )
+                ).count().run()
+            return actual
+        except (ReqlOpFailedError, ReqlNonExistenceError,
+                ReqlDriverError, IndexError) as err:
+            self.log.error(err.args)
+            return 0
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Отключение от базы данных"""
@@ -79,13 +103,13 @@ class RethinDBWork(object):
     def getAllData(self) -> list:
         """Получение всех данных из RethinDB"""
         with self.db() as db:
-            tables = db.table()
+            tables = db.getAllData()
         return self.workCursor(cursor=tables)
 
     def getKeyData(self, key: str = '9705395') -> dict:
         """Получение данных по ключу из RethinDB по CarId или ObjectID"""
         with self.db() as db:
-            tables = db.filter(key)
+            tables = db.getKeyData(key)
             data = self.workCursor(cursor=tables)
         if isinstance(data, list):
             return data[-1]
@@ -112,7 +136,14 @@ class RethinDBWork(object):
                 data.update({self.row_lat: latitude, self.row_lon: longitude})
         return data
 
+    def countActualData(self) -> int:
+        """Получение количества актуальных записей в базе данных"""
+        with self.db() as db:
+            count = db.countActualData()
+        return count
+
 
 db = RethinDBWork()
 # pprint(db.getKeyData('P274TO72'))
-pprint(db.getAllData())
+# pprint(db.getAllData())
+pprint(db.countActualData())
