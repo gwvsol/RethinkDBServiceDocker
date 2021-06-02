@@ -52,9 +52,12 @@ class UseRethinkDB(object):
         """Получение записей из таблицы базы данных
             по ключам CarId и ObjectID"""
         try:
-            return self.db.db(self._dbname).table(self._tablename).filter(
-                (self.db.row[self._row_item][self._row_carid] == key) |
-                (self.db.row[self._row_item][self._row_objectid] == key)).run()
+            # return self.db.db(self._dbname).table(self._tablename).filter(
+            #     (self.db.row[self._row_item][self._row_carid] == key) |
+            #     (self.db.row[self._row_item][self._row_objectid] == key)).run()
+            rcv = self.db.db(self._dbname).table(self._tablename).get(key).keys().run()
+            print(rcv)
+            return rcv
         except (ReqlOpFailedError, ReqlNonExistenceError,
                 ReqlDriverError, IndexError) as err:
             self.log.error(err.args)
@@ -112,7 +115,10 @@ class RethinDBWork(object):
             tables = db.getKeyData(key)
             data = self.workCursor(cursor=tables)
         if isinstance(data, list):
-            return data[-1]
+            if len(data) >= 1:
+                return data[-1]
+            else:
+                return data
         else:
             return data
 
@@ -144,6 +150,6 @@ class RethinDBWork(object):
 
 
 db = RethinDBWork()
-# pprint(db.getKeyData('P274TO72'))
+pprint(db.getKeyData('17605'))
 # pprint(db.getAllData())
-pprint(db.countActualData())
+# pprint(db.countActualData())
